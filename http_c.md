@@ -7,7 +7,7 @@ aliases:
   - Hyper Text Transfer Protocol
 Associated: "[[tank_squared]]"
 ---
-test changes
+
 # Table of Contents
 1. [HTTP Response](#alejandro/HTTPResponse)
 2. [Multi-client messaging](#chris/redirectMsg)
