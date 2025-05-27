@@ -13,6 +13,8 @@ Associated: "[[tank_squared]]"
 2. [Multi-client messaging](#chris/redirectMsg)
 # alejandro/HTTPResponse
 
+GET / HTTP/1.1\r\nHost: localhost\r\nHost: localhost\r\n\r\n
+
 stateful parsing (idea from deepseek; used knowledge from state machines from CS)
 
 - end of headers is the final accepting state if parsing is successful.
