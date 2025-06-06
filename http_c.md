@@ -204,3 +204,5 @@ No idea currently on how to fix this. ChatGPT test case:
 ```
 printf "GET / HTTP/1.1\r\nHost: localhost\r\nX-Test: test\r\nInjected: value\r\n\r\n" | nc 127.0.0.1 8080
 ```
+
+Will need to research...
