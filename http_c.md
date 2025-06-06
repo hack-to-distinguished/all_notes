@@ -40,15 +40,21 @@ think i know the error... Need to add null terminating characters at the end of 
 
 need to fix byte streaming issue... need the parser to separate packets
 ERROR STUFF VALIDATION I NEED TO ADD:
+```
 printf "GET    /     HTTP/1.1\r\nHost: localhost\r\n\r\n" | nc 127.0.0.1 80 (EXTRA SPACES)
 printf "GET / HTTP/1.1\r\n\r\n" | nc 127.0.0.1 80 (NO HOST)
 printf "GET / HTTP/1.1\r\nHost: localhost" | nc 127.0.0.1 80 (?????)
+```
 chatgpt test code:
+```
 bash -c 'HOST=127.0.0.1; PORT=80; tests=("✅ Valid Request" "GET / HTTP/1.1\r\nHost: localhost\r\n\r\n" "❌ Missing Host Header" "GET / HTTP/1.1\r\n\r\n" "❌ Malformed Request Line" "GOT / HTTP/1.1\r\nHost: localhost\r\n\r\n" "❌ Bad HTTP Version" "GET / HTTP/1.0.1\r\nHost: localhost\r\n\r\n" "❌ Extra Spaces in Request Line" "GET    /     HTTP/1.1\r\nHost: localhost\r\n\r\n" "❌ Lowercase Method" "get / HTTP/1.1\r\nHost: localhost\r\n\r\n" "❌ Missing CRLF after headers" "GET / HTTP/1.1\r\nHost: localhost" "❌ Improper Line Endings (LF)" "GET / HTTP/1.1\nHost: localhost\n\n" "❌ Header Injection Attempt" "GET / HTTP/1.1\r\nHost: localhost\r\nX-Test: test\r\nInjected: value\r\n\r\n" "❌ Non-ASCII Characters" "GET / HTTP/1.1\r\nHost: localhøst\r\n\r\n" "❌ Empty Request" "\r\n\r\n" "✅ Valid with Extra Headers" "GET / HTTP/1.1\r\nHost: localhost\r\nUser-Agent: TestClient/1.0\r\nAccept: */*\r\n\r\n"); for ((i=0; i<${#tests[@]}; i+=2)); do echo -e "\n===== ${tests[i]} ====="; printf "${tests[i+1]}" | nc $HOST $PORT; echo -e "\n===========================\n"; sleep 0.5; done'
+```
+
 
 asdf:
+```
 bash -c 'HOST=127.0.0.1; PORT=8080; tests=("✅ Valid Request" "GET / HTTP/1.1\r\nHost: localhost\r\n\r\n" "❌ Missing Host Header" "GET / HTTP/1.1\r\n\r\n" "❌ Malformed Request Line" "GOT / HTTP/1.1\r\nHost: localhost\r\n\r\n" "❌ Bad HTTP Version" "GET / HTTP/1.0.1\r\nHost: localhost\r\n\r\n" "❌ Extra Spaces in Request Line" "GET    /     HTTP/1.1\r\nHost: localhost\r\n\r\n" "❌ Lowercase Method" "get / HTTP/1.1\r\nHost: localhost\r\n\r\n" "❌ Missing CRLF after headers" "GET / HTTP/1.1\r\nHost: localhost" "❌ Missing CRLF after headers" "GET / HTTP/1.1\r\nHost: localhost" "❌Improper Line Endings (LF)" "GET / HTTP/1.1\nHost: localhost\n\n" "❌ Header Injection Attempt" "GET / HTTP/1.1\r\nHost: localhost\r\nX-Test: test\r\nInjected: value\r\n\r\n" "❌ Non-ASCII Characters" "GET / HTTP/1.1\r\nHost: localhøst\r\n\r\n" "❌ Empty Request" "\r\n\r\n" "✅ Valid with Extra Headers" "GET / HTTP/1.1\r\nHost: localhost\r\nUser-Agent: TestClient/1.0\r\nAccept: */*\r\n\r\n"); for ((i=0; i<${#tests[@]}; i+=2)); do echo -e "\n===== ${tests[i]} ====="; printf "${tests[i+1]}" | nc $HOST $PORT; echo -e "\n===========================\n"; sleep 0.5; done'
-
+```
 
 GET 
 / 
