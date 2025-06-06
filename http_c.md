@@ -12,6 +12,7 @@ Associated: "[[tank_squared]]"
 1. [HTTP Response](#alejandro/HTTPResponse)
 2. [Multi-client messaging](#chris/redirectMsg)
 3. [[#chris/betterMsgReception|Instant message reception]]
+4. [HTTP Injection Header Fix](#alejandro/HTTPInjectionHeaderFix)
 # alejandro/HTTPResponse
 
 recreate the error (on linux):
@@ -197,3 +198,9 @@ When the client is in a send state (when he is typing a message) message recepti
 ### Solutions
 - Make `fgets()` asynchronous
 - Use `STDIN_FILENO()` 
+
+# alejandro/HTTPInjectionHeaderFix
+No idea currently on how to fix this. ChatGPT test case:
+```
+printf "GET / HTTP/1.1\r\nHost: localhost\r\nX-Test: test\r\nInjected: value\r\n\r\n" | nc 127.0.0.1 80
+```
