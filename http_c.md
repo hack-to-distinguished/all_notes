@@ -11,6 +11,7 @@ Associated: "[[tank_squared]]"
 # Table of Contents
 1. [HTTP Response](#alejandro/HTTPResponse)
 2. [Multi-client messaging](#chris/redirectMsg)
+3. [[#chris/betterMsgReception|Instant message reception]]
 # alejandro/HTTPResponse
 
 think i know the error... Need to add null terminating characters at the end of each header name and header value extracted
@@ -156,3 +157,15 @@ Handling multiple connections:
 	- Check IF server is ready to receive (POLLIN) - IF yes:
 		- Create the message sending mechanism
 		- Send the message entered by the user
+
+
+# chris/betterMsgReception
+
+### Goal
+Receive the message from the other client as soon as it's ready
+### Problem 
+When the client is in a send state (when he is typing a message) message reception is blocked. This is because the `fgets()` is a blocking function. The messages needs to be sent so that the client goes through another iteration of the loop for a `recv()` function to be called and display the incoming message.
+
+### Solutions
+- Make `fgets()` asynchronous
+- Use `STDIN_FILENO()` 
