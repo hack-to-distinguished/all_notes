@@ -14,6 +14,52 @@ Associated: "[[tank_squared]]"
 3. [[#chris/betterMsgReception|Instant message reception]]
 # alejandro/HTTPResponse
 
+recreate the error (on linux):
+printf "get / HTTP/1.1\r\nHost: localhost\r\n\r\n" | nc 127.0.0.1 8080
+printf "GET / HTTP/1.1\r\nHost: localhost" | nc 127.0.0.1 8080 
+printf "GET / HTTP/1.1\r\nHost: localhost\r\n\r\n" | nc 127.0.0.1 8080
+```
+bash -c '
+HOST=127.0.0.1
+PORT=8080
+tests=(
+  "❌ Lowercase Method" "get / HTTP/1.1\r\nHost: localhost\r\n\r\n"
+  "❌ Missing CRLF after headers" "GET / HTTP/1.1\r\nHost: localhost"
+  "✅ Proper GET Request" "GET / HTTP/1.1\r\nHost: localhost\r\n\r\n"
+)
+for ((i=0; i<${#tests[@]}; i+=2)); do
+  echo -e "\n===== ${tests[i]} ====="
+  printf "${tests[i+1]}" | nc $HOST $PORT
+  echo -e "\n===========================\n"
+  sleep 0.5
+done'
+
+```
+
+think i know the error... Need to add null terminating characters at the end of each header name and header value extracted to avoid unnecessary characters being accidently added to the header value that is extracted. Need to also fix the error where when the 'Host' header is not at the first place in the header field
+
+need to fix byte streaming issue... need the parser to separate packets
+ERROR STUFF VALIDATION I NEED TO ADD:
+```
+printf "GET    /     HTTP/1.1\r\nHost: localhost\r\n\r\n" | nc 127.0.0.1 80 (EXTRA SPACES)
+printf "GET / HTTP/1.1\r\n\r\n" | nc 127.0.0.1 80 (NO HOST)
+printf "GET / HTTP/1.1\r\nHost: localhost" | nc 127.0.0.1 80 (?????)
+```
+chatgpt test code:
+```
+bash -c 'HOST=127.0.0.1; PORT=8080; tests=("✅ Valid Request" "GET / HTTP/1.1\r\nHost: localhost\r\n\r\n" "❌ Missing Host Header" "GET / HTTP/1.1\r\n\r\n" "❌ Malformed Request Line" "GOT / HTTP/1.1\r\nHost: localhost\r\n\r\n" "❌ Bad HTTP Version" "GET / HTTP/1.0.1\r\nHost: localhost\r\n\r\n" "❌ Extra Spaces in Request Line" "GET    /     HTTP/1.1\r\nHost: localhost\r\n\r\n" "❌ Lowercase Method" "get / HTTP/1.1\r\nHost: localhost\r\n\r\n" "❌ Missing CRLF after headers" "GET / HTTP/1.1\r\nHost: localhost" "❌ Improper Line Endings (LF)" "GET / HTTP/1.1\nHost: localhost\n\n" "❌ Header Injection Attempt" "GET / HTTP/1.1\r\nHost: localhost\r\nX-Test: test\r\nInjected: value\r\n\r\n" "❌ Non-ASCII Characters" "GET / HTTP/1.1\r\nHost: localhøst\r\n\r\n" "❌ Empty Request" "\r\n\r\n" "✅ Valid with Extra Headers" "GET / HTTP/1.1\r\nHost: localhost\r\nUser-Agent: TestClient/1.0\r\nAccept: */*\r\n\r\n"); for ((i=0; i<${#tests[@]}; i+=2)); do echo -e "\n===== ${tests[i]} ====="; printf "${tests[i+1]}" | nc $HOST $PORT; echo -e "\n===========================\n"; sleep 0.5; done'
+```
+
+
+asdf:
+```
+bash -c 'HOST=127.0.0.1; PORT=8080; tests=("✅ Valid Request" "GET / HTTP/1.1\r\nHost: localhost\r\n\r\n" "❌ Missing Host Header" "GET / HTTP/1.1\r\n\r\n" "❌ Malformed Request Line" "GOT / HTTP/1.1\r\nHost: localhost\r\n\r\n" "❌ Bad HTTP Version" "GET / HTTP/1.0.1\r\nHost: localhost\r\n\r\n" "❌ Extra Spaces in Request Line" "GET    /     HTTP/1.1\r\nHost: localhost\r\n\r\n" "❌ Lowercase Method" "get / HTTP/1.1\r\nHost: localhost\r\n\r\n" "❌ Missing CRLF after headers" "GET / HTTP/1.1\r\nHost: localhost" "❌ Missing CRLF after headers" "GET / HTTP/1.1\r\nHost: localhost" "❌Improper Line Endings (LF)" "GET / HTTP/1.1\nHost: localhost\n\n" "❌ Header Injection Attempt" "GET / HTTP/1.1\r\nHost: localhost\r\nX-Test: test\r\nInjected: value\r\n\r\n" "❌ Non-ASCII Characters" "GET / HTTP/1.1\r\nHost: localhøst\r\n\r\n" "❌ Empty Request" "\r\n\r\n" "✅ Valid with Extra Headers" "GET / HTTP/1.1\r\nHost: localhost\r\nUser-Agent: TestClient/1.0\r\nAccept: */*\r\n\r\n"); for ((i=0; i<${#tests[@]}; i+=2)); do echo -e "\n===== ${tests[i]} ====="; printf "${tests[i+1]}" | nc $HOST $PORT; echo -e "\n===========================\n"; sleep 0.5; done'
+```
+
+GET 
+/ 
+HTTP/1.1\r\n Host: localhost\r\n\r\n
+
 stateful parsing (idea from deepseek; used knowledge from state machines from CS)
 
 - end of headers is the final accepting state if parsing is successful.
@@ -89,15 +135,6 @@ html block with crlf
 
 Different status codes:
 ![[status_codes.png]]
-
-- Make parse method better (might just redo it, as it is trash; need to find good examples):
-    - Modularise…
-    - Focus on detecting whether header is malformed or not:
-        - Need to check every single header field.
-        - Need to check that ends properly with double CRLF.
-        - Need to also check that each field is separated by a single CRLF (’\r\n\r\n’).
-    - Need to also stream bytes better… So when there are two http packets send one after the other, I should be able to only parse through one of them at a time (e.g., I need a delimmiter or something to only store data relevant to the current http packet to be parsed so the other one doesn’t also get stored within said buffer from byte stream.)
-        - update receive http method.
 
 ### Sources Used
 [What's the right way to parse HTTP packets?](https://stackoverflow.com/questions/17460819/whats-the-right-way-to-parse-http-packets)
