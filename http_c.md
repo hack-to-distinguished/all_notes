@@ -14,7 +14,29 @@ Associated: "[[tank_squared]]"
 3. [[#chris/betterMsgReception|Instant message reception]]
 # alejandro/HTTPResponse
 
-think i know the error... Need to add null terminating characters at the end of each header name and header value extracted
+recreate the error (on linux):
+printf "get / HTTP/1.1\r\nHost: localhost\r\n\r\n" | nc 127.0.0.1 8080
+printf "GET / HTTP/1.1\r\nHost: localhost" | nc 127.0.0.1 8080 
+printf "GET / HTTP/1.1\r\nHost: localhost\r\n\r\n" | nc 127.0.0.1 8080
+```
+bash -c '
+HOST=127.0.0.1
+PORT=8080
+tests=(
+  "❌ Lowercase Method" "get / HTTP/1.1\r\nHost: localhost\r\n\r\n"
+  "❌ Missing CRLF after headers" "GET / HTTP/1.1\r\nHost: localhost"
+  "✅ Proper GET Request" "GET / HTTP/1.1\r\nHost: localhost\r\n\r\n"
+)
+for ((i=0; i<${#tests[@]}; i+=2)); do
+  echo -e "\n===== ${tests[i]} ====="
+  printf "${tests[i+1]}" | nc $HOST $PORT
+  echo -e "\n===========================\n"
+  sleep 0.5
+done'
+
+```
+
+think i know the error... Need to add null terminating characters at the end of each header name and header value extracted to avoid unnecessary characters being accidently added to the header value that is extracted. Need to also fix the error where when the 'Host' header is not at the first place in the header field
 
 need to fix byte streaming issue... need the parser to separate packets
 ERROR STUFF VALIDATION I NEED TO ADD:
