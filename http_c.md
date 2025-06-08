@@ -335,3 +335,8 @@ i 105
 
 - Finished checking if file exists on web server or not.
 - Next steps -> send the requested file back to the user!!!!!!
+
+Text File Request + Retrieval:
+Open text file -> read file contents -> copy file contents in suitable HTTP packet where the 'Content-Type' is set to 'text/plain' -> send to client -> web browser renders said text file...
+https://www.geeksforgeeks.org/c-program-to-read-contents-of-whole-file/
+https://developer.mozilla.org/en-US/docs/Web/HTTP/Guides/Messages#anatomy_of_an_http_message
