@@ -202,4 +202,8 @@ When the client is in a send state (when he is typing a message) message recepti
 # alejandro/HTTPFileRetrieval
 PLAN: 
 - User can type URI in search bar through the web browser; e.g., let's say they want to 'GET' a picture of Lebron James from the web server, they would type in the browser '127.0.0.1:8080/lebron-james.jpg'
+- Web server will need to validate and check if said file is on the server and respond accordingly:
+	- If it is present, then send the file back.
+	- Else send an error packet back to the user...
+- 
 https://cdn.britannica.com/19/233519-050-F0604A51/LeBron-James-Los-Angeles-Lakers-Staples-Center-2019.jpg -> example URL
