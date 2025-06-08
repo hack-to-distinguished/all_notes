@@ -332,3 +332,6 @@ i 105
  13
 
  10
+
+- Finished checking if file exists on web server or not.
+- Next steps -> send the requested file back to the user!!!!!!
