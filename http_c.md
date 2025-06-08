@@ -200,11 +200,6 @@ When the client is in a send state (when he is typing a message) message recepti
 - Use `STDIN_FILENO()` 
 
 # alejandro/HTTPFileRetrieval
-No idea currently on how to fix this. ChatGPT test case:
-```
-printf "GET / HTTP/1.1\r\nHost: localhost\r\nX-Test: test\r\nInjected: value\r\n\r\n" | nc 127.0.0.1 8080
-```
-
-Will need to research...
-
-printf "GET /index.html HTTP/1.1\r\nHost: www.example.com%0d%0aX-Forwarded-For: 192.168.1.1\r\n\r\n" | nc 127.0.0.1 8080
+PLAN: 
+- User can type URI in search bar through the web browser; e.g., let's say they want to 'GET' a picture of Lebron James from the web server, they would type in the browser '127.0.0.1:8080/lebron-james.jpg'
+https://cdn.britannica.com/19/233519-050-F0604A51/LeBron-James-Los-Angeles-Lakers-Staples-Center-2019.jpg -> example URL
