@@ -273,3 +273,61 @@ Sec-Fetch-Site: none
 Sec-Fetch-User: ?1
 Priority: u=0, i
 ```
+The fix I am going to try is add null terminating character at the end of each packet...
+
+ 10
+P 80
+r 114
+i 105
+o 111
+r 114
+i 105
+t 116
+y 121
+: 58
+  32
+u 117
+= 61
+0 48
+, 44
+  32
+i 105
+ 13
+
+ 10
+ 13
+
+ 10
+---------
+P 80
+r 114
+i 105
+o 111
+r 114
+i 105
+t 116
+y 121
+: 58
+  32
+u 117
+= 61
+0 48
+, 44
+  32
+i 105
+ 13
+
+ 10
+ 13
+
+ 10
+0 48
+, 44
+  32
+i 105
+ 13
+
+ 10
+ 13
+
+ 10
