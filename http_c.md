@@ -252,6 +252,8 @@ Priority: u=0, i
 ```
 
 test.txt by itself:
+- Just making a single request with the test.txt URI works.
+- Problem probably stems from the number of bytes being received is different...
 ```
 Bytes received: 466
 HTTP Packet received from browser/client:
