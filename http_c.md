@@ -274,6 +274,7 @@ Sec-Fetch-User: ?1
 Priority: u=0, i
 ```
 The fix I am going to try is add null terminating character at the end of each packet...
+- Doing this did fix it.
 
  10
 P 80
