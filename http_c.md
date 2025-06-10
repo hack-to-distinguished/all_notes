@@ -26,7 +26,7 @@ PORT=8080
 tests=(
   "❌ Lowercase Method" "get / HTTP/1.1\r\nHost: localhost\r\n\r\n"
   "❌ Missing CRLF after headers" "GET / HTTP/1.1\r\nHost: localhost"
-  "✅ Proper GET Request" "GET / HTTP/1.1\r\nHost: localhost\r\n\r\n"
+  "✅ Proper GET Request" "GET /data/geralt.txt HTTP/1.1\r\nHost: localhost\r\n\r\n"
 )
 for ((i=0; i<${#tests[@]}; i+=2)); do
   echo -e "\n===== ${tests[i]} ====="
