@@ -24,8 +24,9 @@ bash -c '
 HOST=127.0.0.1
 PORT=8080
 tests=(
-  "❌ Lowercase Method" "get / HTTP/1.1\r\nHost: localhost\r\n\r\n"
-  "❌ Missing CRLF after headers" "GET / HTTP/1.1\r\nHost: localhost"
+  "❌ Lowercase Method" "get /data/geralt.txt HTTP/1.1\r\nHost: localhost\r\n\r\n"
+  "❌ File does not exist" "GET /data/dean.txt HTTP/1.1\r\nHost: localhost\r\n\r\n"
+  "❌ Missing CRLF after headers" "GET /data/geralt.txt HTTP/1.1\r\nHost: localhost"
   "✅ Proper GET Request" "GET /data/geralt.txt HTTP/1.1\r\nHost: localhost\r\n\r\n"
 )
 for ((i=0; i<${#tests[@]}; i+=2)); do
