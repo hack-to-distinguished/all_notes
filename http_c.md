@@ -160,3 +160,15 @@ When the client is in a send state (when he is typing a message) message recepti
 ### Solutions
 - Make `fgets()` asynchronous
 - Use `STDIN_FILENO()` 
+
+
+# chris/msgUI
+
+### Goal
+Build a user interface for the messaging portion of HTTPC. Build a web view using JavaScript. 
+The next step would be building a GUI for desktop in C.
+
+### Problem 
+
+
+### Solutions
