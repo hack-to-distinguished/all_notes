@@ -341,3 +341,23 @@ Text File Request + Retrieval:
 Open text file -> read file contents -> copy file contents in suitable HTTP packet where the 'Content-Type' is set to 'text/plain' -> send to client -> web browser renders said text file...
 https://www.geeksforgeeks.org/c-program-to-read-contents-of-whole-file/
 https://developer.mozilla.org/en-US/docs/Web/HTTP/Guides/Messages#anatomy_of_an_http_message
+
+test code:
+```
+bash -c '
+HOST=127.0.0.1
+PORT=8080
+tests=(
+  "❌ Lowercase Method" "get /data/geralt.txt HTTP/1.1\r\nHost: localhost\r\n\r\n"
+  "❌ File does not exist" "GET /data/dean.txt HTTP/1.1\r\nHost: localhost\r\n\r\n"
+  "❌ Missing CRLF after headers" "GET /data/geralt.txt HTTP/1.1\r\nHost: localhost"
+  "✅ Proper GET Request" "GET /data/geralt.txt HTTP/1.1\r\nHost: localhost\r\n\r\n"
+)
+for ((i=0; i<${#tests[@]}; i+=2)); do
+  echo -e "\n===== ${tests[i]} ====="
+  printf "${tests[i+1]}" | nc $HOST $PORT
+  echo -e "\n===========================\n"
+  sleep 0.5
+done'
+
+```
