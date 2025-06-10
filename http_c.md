@@ -12,7 +12,7 @@ Associated: "[[tank_squared]]"
 1. [HTTP Response](#alejandro/HTTPResponse)
 2. [Multi-client messaging](#chris/redirectMsg)
 3. [[#chris/betterMsgReception|Instant message reception]]
-4. [HTTP File Retrieval](#alejandro/HTTPFileRetrieval)
+4. [HTTP Text File Retrieval](#alejandro/HTTPTextFileRetrieval)
 # alejandro/HTTPResponse
 
 recreate the error (on linux):
@@ -200,7 +200,7 @@ When the client is in a send state (when he is typing a message) message recepti
 - Make `fgets()` asynchronous
 - Use `STDIN_FILENO()` 
 
-# alejandro/HTTPFileRetrieval
+# alejandro/HTTPTextFileRetrieval
 PLAN: 
 - User can type URI in search bar through the web browser; e.g., let's say they want to 'GET' a picture of Lebron James from the web server, they would type in the browser '127.0.0.1:8080/lebron-james.jpg'
 - Web server will need to validate and check if said file is on the server and respond accordingly:
