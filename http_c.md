@@ -12,6 +12,7 @@ Associated: "[[tank_squared]]"
 1. [HTTP Response](#alejandro/HTTPResponse)
 2. [Multi-client messaging](#chris/redirectMsg)
 3. [[#chris/betterMsgReception|Instant message reception]]
+4. [HTTP Text File Retrieval](#alejandro/HTTPTextFileRetrieval)
 # alejandro/HTTPResponse
 
 recreate the error (on linux):
@@ -23,9 +24,10 @@ bash -c '
 HOST=127.0.0.1
 PORT=8080
 tests=(
-  "❌ Lowercase Method" "get / HTTP/1.1\r\nHost: localhost\r\n\r\n"
-  "❌ Missing CRLF after headers" "GET / HTTP/1.1\r\nHost: localhost"
-  "✅ Proper GET Request" "GET / HTTP/1.1\r\nHost: localhost\r\n\r\n"
+  "❌ Lowercase Method" "get /data/geralt.txt HTTP/1.1\r\nHost: localhost\r\n\r\n"
+  "❌ File does not exist" "GET /data/dean.txt HTTP/1.1\r\nHost: localhost\r\n\r\n"
+  "❌ Missing CRLF after headers" "GET /data/geralt.txt HTTP/1.1\r\nHost: localhost"
+  "✅ Proper GET Request" "GET /data/geralt.txt HTTP/1.1\r\nHost: localhost\r\n\r\n"
 )
 for ((i=0; i<${#tests[@]}; i+=2)); do
   echo -e "\n===== ${tests[i]} ====="
@@ -197,3 +199,165 @@ When the client is in a send state (when he is typing a message) message recepti
 ### Solutions
 - Make `fgets()` asynchronous
 - Use `STDIN_FILENO()` 
+
+# alejandro/HTTPTextFileRetrieval
+PLAN: 
+- User can type URI in search bar through the web browser; e.g., let's say they want to 'GET' a picture of Lebron James from the web server, they would type in the browser '127.0.0.1:8080/lebron-james.jpg'
+- Web server will need to validate and check if said file is on the server and respond accordingly:
+	- If it is present, then send the file back.
+	- Else send an error packet back to the user...
+https://cdn.britannica.com/19/233519-050-F0604A51/LeBron-James-Los-Angeles-Lakers-Staples-Center-2019.jpg -> example URL
+
+Problem encounter 1:
+- Caused by entering 'http://127.0.0.1:8080/lebron-james.jpg' on one tab which returns a 200 OK packet and then 'http://127.0.0.1:8080/test.txt' which returns a 404 error packet... Both should have 200 OK packet.
+lebron-james.jpg:
+```
+Bytes received: 474
+HTTP Packet received from browser/client:
+GET /lebron-james.jpg HTTP/1.1
+Host: 127.0.0.1:8080
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:139.0) Gecko/20100101 Firefox/139.0
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8
+Accept-Language: en-US,en;q=0.5
+Accept-Encoding: gzip, deflate, br, zstd
+DNT: 1
+Sec-GPC: 1
+Connection: keep-alive
+Upgrade-Insecure-Requests: 1
+Sec-Fetch-Dest: document
+Sec-Fetch-Mode: navigate
+Sec-Fetch-Site: none
+Sec-Fetch-User: ?1
+Priority: u=0, i
+```
+test.txt:
+```
+Bytes received: 466
+HTTP Packet received from browser/client:
+GET /test.txt HTTP/1.1
+Host: 127.0.0.1:8080
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:139.0) Gecko/20100101 Firefox/139.0
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8
+Accept-Language: en-US,en;q=0.5
+Accept-Encoding: gzip, deflate, br, zstd
+DNT: 1
+Sec-GPC: 1
+Connection: keep-alive
+Upgrade-Insecure-Requests: 1
+Sec-Fetch-Dest: document
+Sec-Fetch-Mode: navigate
+Sec-Fetch-Site: none
+Sec-Fetch-User: ?1
+Priority: u=0, i
+0, i
+```
+
+test.txt by itself:
+- Just making a single request with the test.txt URI works.
+- Problem probably stems from the number of bytes being received is different...
+```
+Bytes received: 466
+HTTP Packet received from browser/client:
+GET /test.txt HTTP/1.1
+Host: 127.0.0.1:8080
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:139.0) Gecko/20100101 Firefox/139.0
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8
+Accept-Language: en-US,en;q=0.5
+Accept-Encoding: gzip, deflate, br, zstd
+DNT: 1
+Sec-GPC: 1
+Connection: keep-alive
+Upgrade-Insecure-Requests: 1
+Sec-Fetch-Dest: document
+Sec-Fetch-Mode: navigate
+Sec-Fetch-Site: none
+Sec-Fetch-User: ?1
+Priority: u=0, i
+```
+The fix I am going to try is add null terminating character at the end of each packet...
+- Doing this did fix it.
+
+ 10
+P 80
+r 114
+i 105
+o 111
+r 114
+i 105
+t 116
+y 121
+: 58
+  32
+u 117
+= 61
+0 48
+, 44
+  32
+i 105
+ 13
+
+ 10
+ 13
+
+ 10
+---------
+P 80
+r 114
+i 105
+o 111
+r 114
+i 105
+t 116
+y 121
+: 58
+  32
+u 117
+= 61
+0 48
+, 44
+  32
+i 105
+ 13
+
+ 10
+ 13
+
+ 10
+0 48
+, 44
+  32
+i 105
+ 13
+
+ 10
+ 13
+
+ 10
+
+- Finished checking if file exists on web server or not.
+- Next steps -> send the requested file back to the user!!!!!!
+
+Text File Request + Retrieval:
+Open text file -> read file contents -> copy file contents in suitable HTTP packet where the 'Content-Type' is set to 'text/plain' -> send to client -> web browser renders said text file...
+https://www.geeksforgeeks.org/c-program-to-read-contents-of-whole-file/
+https://developer.mozilla.org/en-US/docs/Web/HTTP/Guides/Messages#anatomy_of_an_http_message
+
+test code:
+```
+bash -c '
+HOST=127.0.0.1
+PORT=8080
+tests=(
+  "❌ Lowercase Method" "get /data/geralt.txt HTTP/1.1\r\nHost: localhost\r\n\r\n"
+  "❌ File does not exist" "GET /data/dean.txt HTTP/1.1\r\nHost: localhost\r\n\r\n"
+  "❌ Missing CRLF after headers" "GET /data/geralt.txt HTTP/1.1\r\nHost: localhost"
+  "✅ Proper GET Request" "GET /data/geralt.txt HTTP/1.1\r\nHost: localhost\r\n\r\n"
+)
+for ((i=0; i<${#tests[@]}; i+=2)); do
+  echo -e "\n===== ${tests[i]} ====="
+  printf "${tests[i+1]}" | nc $HOST $PORT
+  echo -e "\n===========================\n"
+  sleep 0.5
+done'
+
+```
