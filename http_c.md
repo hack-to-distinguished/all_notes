@@ -13,6 +13,7 @@ Associated: "[[tank_squared]]"
 2. [Multi-client messaging](#chris/redirectMsg)
 3. [[#chris/betterMsgReception|Instant message reception]]
 4. [HTTP Text File Retrieval](#alejandro/HTTPTextFileRetrieval)
+5. [HTTP Image File Retrieval](#alejandro/HTTPImageFileRetrieval)
 # alejandro/HTTPResponse
 
 recreate the error (on linux):
@@ -351,7 +352,7 @@ tests=(
   "❌ Lowercase Method" "get /data/geralt.txt HTTP/1.1\r\nHost: localhost\r\n\r\n"
   "❌ File does not exist" "GET /data/dean.txt HTTP/1.1\r\nHost: localhost\r\n\r\n"
   "❌ Missing CRLF after headers" "GET /data/geralt.txt HTTP/1.1\r\nHost: localhost"
-  "✅ Proper GET Request" "GET /data/geralt.txt HTTP/1.1\r\nHost: localhost\r\n\r\n"
+  "✅ Proper GET Request" "GET /data/geralt.jpg HTTP/1.1\r\nHost: localhost\r\n\r\n"
 )
 for ((i=0; i<${#tests[@]}; i+=2)); do
   echo -e "\n===== ${tests[i]} ====="
@@ -361,3 +362,8 @@ for ((i=0; i<${#tests[@]}; i+=2)); do
 done'
 
 ```
+
+# alejandro/HTTPImageFileRetrieval
+GOALS:
+- Get .jpg and .jpeg file transfer and request working...
+
