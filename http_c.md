@@ -158,7 +158,6 @@ Receive the message from the other client as soon as it's ready
 When the client is in a send state (when he is typing a message) message reception is blocked. This is because the `fgets()` is a blocking function. The messages needs to be sent so that the client goes through another iteration of the loop for a `recv()` function to be called and display the incoming message.
 
 ### Solutions
-- Make `fgets()` asynchronous
 - Use `STDIN_FILENO()` 
 
 
@@ -166,9 +165,14 @@ When the client is in a send state (when he is typing a message) message recepti
 
 ### Goal
 Build a user interface for the messaging portion of HTTPC. Build a web view using JavaScript. 
+Build a command line user interface where people can SSH into HTTC to send a receive messages straight from the CLI.
 The next step would be building a GUI for desktop in C.
+
 
 ### Problem 
 
 
 ### Solutions
+Web view for the chat
+- Build a view that would show some floating text. Like something that's not supposed to be answered. Just messages that float into the void. They go from right to left and can appear at any y-axis level.
+SSH through the CLI for the chat. 
