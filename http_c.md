@@ -399,7 +399,7 @@ Need to figure out how to encode a .jpg/.jpeg file into the message body of the 
 
 Process for image retrieval:
 1) Binary read the data of the image.
-2) Then, I need to copy said data into an appropriate buffer of enough size (need to also think about error handling, if the file is too big...).
-3) Get the length of the image data.
+2) Get the length of the image data and malloc a buffer of enough size.
+3) Then, I need to copy said data into an appropriate buffer of enough size (need to also think about error handling, if the file is too big...).
 4) Format both length and raw binary data into an appropriate HTTP packet.
 5) Send the packet over to the client (web browser).
