@@ -376,6 +376,7 @@ tests=(
   "❌ Lowercase Method" "get /data/geralt.txt HTTP/1.1\r\nHost: localhost\r\n\r\n"
   "❌ File does not exist" "GET /data/dean.txt HTTP/1.1\r\nHost: localhost\r\n\r\n"
   "❌ Missing CRLF after headers" "GET /data/geralt.txt HTTP/1.1\r\nHost: localhost"
+  "✅ Proper GET Request with .txt file" "GET /data/geralt.txt HTTP/1.1\r\nHost: localhost\r\n\r\n"
   "✅ Proper GET Request with .jpg image" "GET /data/geralt.jpg HTTP/1.1\r\nHost: localhost\r\n\r\n"
 )
 for ((i=0; i<${#tests[@]}; i+=2)); do
