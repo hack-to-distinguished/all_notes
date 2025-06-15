@@ -13,6 +13,7 @@ Associated: "[[tank_squared]]"
 2. [Multi-client messaging](#chris/redirectMsg)
 3. [[#chris/betterMsgReception|Instant message reception]]
 4. [HTTP Text File Retrieval](#alejandro/HTTPTextFileRetrieval)
+5. [HTTP Image File Retrieval](#alejandro/HTTPImageFileRetrieval)
 # alejandro/HTTPResponse
 
 recreate the error (on linux):
@@ -361,3 +362,49 @@ for ((i=0; i<${#tests[@]}; i+=2)); do
 done'
 
 ```
+
+# alejandro/HTTPImageFileRetrieval
+GOALS:
+- Get .jpg and .jpeg file transfer and request working...
+
+Test code:
+```
+bash -c '
+HOST=127.0.0.1
+PORT=8080
+tests=(
+  "❌ Lowercase Method" "get /data/geralt.txt HTTP/1.1\r\nHost: localhost\r\n\r\n"
+  "❌ File does not exist" "GET /data/dean.txt HTTP/1.1\r\nHost: localhost\r\n\r\n"
+  "❌ Missing CRLF after headers" "GET /data/geralt.txt HTTP/1.1\r\nHost: localhost"
+  "✅ Proper GET Request with .txt file" "GET /data/geralt.txt HTTP/1.1\r\nHost: localhost\r\n\r\n"
+  "✅ Proper GET Request with .jpg image" "GET /data/geralt.jpg HTTP/1.1\r\nHost: localhost\r\n\r\n"
+)
+for ((i=0; i<${#tests[@]}; i+=2)); do
+  echo -e "\n===== ${tests[i]} ====="
+  printf "${tests[i+1]}" | nc $HOST $PORT
+  echo -e "\n===========================\n"
+  sleep 0.5
+done'
+```
+
+https://stackoverflow.com/questions/23714383/what-are-all-the-possible-values-for-http-content-type-header
+-> `image/jpeg`, content-type header value...
+don't need encoding... -> can think about it later.
+Need to figure out how to encode a .jpg/.jpeg file into the message body of the HTTP packet:
+- Need to specify content codings -> 'Content codings are primarily
+   used to allow a document to be compressed or otherwise usefully
+   transformed without losing the identity of its underlying media type
+   and without loss of information. Frequently, the entity is stored in
+   coded form, transmitted directly, and only decoded by the recipient.'
+	- https://www.rfc-editor.org/rfc/rfc2616#section-3.5 (3.5 Content Codings)
+
+Process for image retrieval:
+1) Binary read the data of the image.
+2) Get the length of the image data and malloc a buffer of enough size.
+3) Then, I need to copy said data into an appropriate buffer of enough size (need to also think about error handling, if the file is too big...).
+4) Format both length and raw binary data into an appropriate HTTP packet.
+5) Send the packet over to the client (web browser).
+
+https://www.man7.org/linux/man-pages/man2/stat.2.html
+https://www.man7.org/linux/man-pages/man3/stat.3type.html
+https://pubs.opengroup.org/onlinepubs/7908799/xsh/sysstat.h.html
