@@ -404,3 +404,7 @@ Process for image retrieval:
 3) Then, I need to copy said data into an appropriate buffer of enough size (need to also think about error handling, if the file is too big...).
 4) Format both length and raw binary data into an appropriate HTTP packet.
 5) Send the packet over to the client (web browser).
+
+https://www.man7.org/linux/man-pages/man2/stat.2.html
+https://www.man7.org/linux/man-pages/man3/stat.3type.html
+https://pubs.opengroup.org/onlinepubs/7908799/xsh/sysstat.h.html
