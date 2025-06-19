@@ -14,6 +14,7 @@ Associated: "[[tank_squared]]"
 3. [[#chris/betterMsgReception|Instant message reception]]
 4. [HTTP Text File Retrieval](#alejandro/HTTPTextFileRetrieval)
 5. [HTTP Image File Retrieval](#alejandro/HTTPImageFileRetrieval)
+6. [HTTP Head Method](#alejandro/HEADMethod)
 # alejandro/HTTPResponse
 
 recreate the error (on linux):
@@ -408,3 +409,5 @@ Process for image retrieval:
 https://www.man7.org/linux/man-pages/man2/stat.2.html
 https://www.man7.org/linux/man-pages/man3/stat.3type.html
 https://pubs.opengroup.org/onlinepubs/7908799/xsh/sysstat.h.html
+
+# alejandro/HEADMethod
