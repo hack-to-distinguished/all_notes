@@ -411,3 +411,5 @@ https://www.man7.org/linux/man-pages/man3/stat.3type.html
 https://pubs.opengroup.org/onlinepubs/7908799/xsh/sysstat.h.html
 
 # alejandro/HEADMethod
+- https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Methods/HEAD
+HEAD method is basically a GET method, but only retrieves the header fields of a specific resource.
