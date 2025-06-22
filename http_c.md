@@ -7,12 +7,61 @@ aliases:
   - Hyper Text Transfer Protocol
 Associated: "[[tank_squared]]"
 ---
-
+****
 # Table of Contents
 1. [HTTP Response](#alejandro/HTTPResponse)
 2. [Multi-client messaging](#chris/redirectMsg)
 3. [[#chris/betterMsgReception|Instant message reception]]
+4. [HTTP Text File Retrieval](#alejandro/HTTPTextFileRetrieval)
+5. [HTTP Image File Retrieval](#alejandro/HTTPImageFileRetrieval)
 # alejandro/HTTPResponse
+
+recreate the error (on linux):
+printf "get / HTTP/1.1\r\nHost: localhost\r\n\r\n" | nc 127.0.0.1 8080
+printf "GET / HTTP/1.1\r\nHost: localhost" | nc 127.0.0.1 8080 
+printf "GET / HTTP/1.1\r\nHost: localhost\r\n\r\n" | nc 127.0.0.1 8080
+```
+bash -c '
+HOST=127.0.0.1
+PORT=8080
+tests=(
+  "❌ Lowercase Method" "get /data/geralt.txt HTTP/1.1\r\nHost: localhost\r\n\r\n"
+  "❌ File does not exist" "GET /data/dean.txt HTTP/1.1\r\nHost: localhost\r\n\r\n"
+  "❌ Missing CRLF after headers" "GET /data/geralt.txt HTTP/1.1\r\nHost: localhost"
+  "✅ Proper GET Request" "GET /data/geralt.txt HTTP/1.1\r\nHost: localhost\r\n\r\n"
+)
+for ((i=0; i<${#tests[@]}; i+=2)); do
+  echo -e "\n===== ${tests[i]} ====="
+  printf "${tests[i+1]}" | nc $HOST $PORT
+  echo -e "\n===========================\n"
+  sleep 0.5
+done'
+
+```
+
+think i know the error... Need to add null terminating characters at the end of each header name and header value extracted to avoid unnecessary characters being accidently added to the header value that is extracted. Need to also fix the error where when the 'Host' header is not at the first place in the header field
+
+need to fix byte streaming issue... need the parser to separate packets
+ERROR STUFF VALIDATION I NEED TO ADD:
+```
+printf "GET    /     HTTP/1.1\r\nHost: localhost\r\n\r\n" | nc 127.0.0.1 80 (EXTRA SPACES)
+printf "GET / HTTP/1.1\r\n\r\n" | nc 127.0.0.1 80 (NO HOST)
+printf "GET / HTTP/1.1\r\nHost: localhost" | nc 127.0.0.1 80 (?????)
+```
+chatgpt test code:
+```
+bash -c 'HOST=127.0.0.1; PORT=8080; tests=("✅ Valid Request" "GET / HTTP/1.1\r\nHost: localhost\r\n\r\n" "❌ Missing Host Header" "GET / HTTP/1.1\r\n\r\n" "❌ Malformed Request Line" "GOT / HTTP/1.1\r\nHost: localhost\r\n\r\n" "❌ Bad HTTP Version" "GET / HTTP/1.0.1\r\nHost: localhost\r\n\r\n" "❌ Extra Spaces in Request Line" "GET    /     HTTP/1.1\r\nHost: localhost\r\n\r\n" "❌ Lowercase Method" "get / HTTP/1.1\r\nHost: localhost\r\n\r\n" "❌ Missing CRLF after headers" "GET / HTTP/1.1\r\nHost: localhost" "❌ Improper Line Endings (LF)" "GET / HTTP/1.1\nHost: localhost\n\n" "❌ Header Injection Attempt" "GET / HTTP/1.1\r\nHost: localhost\r\nX-Test: test\r\nInjected: value\r\n\r\n" "❌ Non-ASCII Characters" "GET / HTTP/1.1\r\nHost: localhøst\r\n\r\n" "❌ Empty Request" "\r\n\r\n" "✅ Valid with Extra Headers" "GET / HTTP/1.1\r\nHost: localhost\r\nUser-Agent: TestClient/1.0\r\nAccept: */*\r\n\r\n"); for ((i=0; i<${#tests[@]}; i+=2)); do echo -e "\n===== ${tests[i]} ====="; printf "${tests[i+1]}" | nc $HOST $PORT; echo -e "\n===========================\n"; sleep 0.5; done'
+```
+
+
+asdf:
+```
+bash -c 'HOST=127.0.0.1; PORT=8080; tests=("✅ Valid Request" "GET / HTTP/1.1\r\nHost: localhost\r\n\r\n" "❌ Missing Host Header" "GET / HTTP/1.1\r\n\r\n" "❌ Malformed Request Line" "GOT / HTTP/1.1\r\nHost: localhost\r\n\r\n" "❌ Bad HTTP Version" "GET / HTTP/1.0.1\r\nHost: localhost\r\n\r\n" "❌ Extra Spaces in Request Line" "GET    /     HTTP/1.1\r\nHost: localhost\r\n\r\n" "❌ Lowercase Method" "get / HTTP/1.1\r\nHost: localhost\r\n\r\n" "❌ Missing CRLF after headers" "GET / HTTP/1.1\r\nHost: localhost" "❌ Missing CRLF after headers" "GET / HTTP/1.1\r\nHost: localhost" "❌Improper Line Endings (LF)" "GET / HTTP/1.1\nHost: localhost\n\n" "❌ Header Injection Attempt" "GET / HTTP/1.1\r\nHost: localhost\r\nX-Test: test\r\nInjected: value\r\n\r\n" "❌ Non-ASCII Characters" "GET / HTTP/1.1\r\nHost: localhøst\r\n\r\n" "❌ Empty Request" "\r\n\r\n" "✅ Valid with Extra Headers" "GET / HTTP/1.1\r\nHost: localhost\r\nUser-Agent: TestClient/1.0\r\nAccept: */*\r\n\r\n"); for ((i=0; i<${#tests[@]}; i+=2)); do echo -e "\n===== ${tests[i]} ====="; printf "${tests[i+1]}" | nc $HOST $PORT; echo -e "\n===========================\n"; sleep 0.5; done'
+```
+
+GET 
+/ 
+HTTP/1.1\r\n Host: localhost\r\n\r\n
 
 stateful parsing (idea from deepseek; used knowledge from state machines from CS)
 
@@ -90,15 +139,6 @@ html block with crlf
 Different status codes:
 ![[status_codes.png]]
 
-- Make parse method better (might just redo it, as it is trash; need to find good examples):
-    - Modularise…
-    - Focus on detecting whether header is malformed or not:
-        - Need to check every single header field.
-        - Need to check that ends properly with double CRLF.
-        - Need to also check that each field is separated by a single CRLF (’\r\n\r\n’).
-    - Need to also stream bytes better… So when there are two http packets send one after the other, I should be able to only parse through one of them at a time (e.g., I need a delimmiter or something to only store data relevant to the current http packet to be parsed so the other one doesn’t also get stored within said buffer from byte stream.)
-        - update receive http method.
-
 ### Sources Used
 [What's the right way to parse HTTP packets?](https://stackoverflow.com/questions/17460819/whats-the-right-way-to-parse-http-packets)
 
@@ -148,6 +188,215 @@ Handling multiple connections:
 	- Check IF server is ready to receive (POLLIN) - IF yes:
 		- Create the message sending mechanism
 		- Send the message entered by the user
+
+
+# alejandro/HTTPTextFileRetrieval
+PLAN: 
+- User can type URI in search bar through the web browser; e.g., let's say they want to 'GET' a picture of Lebron James from the web server, they would type in the browser '127.0.0.1:8080/lebron-james.jpg'
+- Web server will need to validate and check if said file is on the server and respond accordingly:
+	- If it is present, then send the file back.
+	- Else send an error packet back to the user...
+https://cdn.britannica.com/19/233519-050-F0604A51/LeBron-James-Los-Angeles-Lakers-Staples-Center-2019.jpg -> example URL
+
+Problem encounter 1:
+- Caused by entering 'http://127.0.0.1:8080/lebron-james.jpg' on one tab which returns a 200 OK packet and then 'http://127.0.0.1:8080/test.txt' which returns a 404 error packet... Both should have 200 OK packet.
+lebron-james.jpg:
+```
+Bytes received: 474
+HTTP Packet received from browser/client:
+GET /lebron-james.jpg HTTP/1.1
+Host: 127.0.0.1:8080
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:139.0) Gecko/20100101 Firefox/139.0
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8
+Accept-Language: en-US,en;q=0.5
+Accept-Encoding: gzip, deflate, br, zstd
+DNT: 1
+Sec-GPC: 1
+Connection: keep-alive
+Upgrade-Insecure-Requests: 1
+Sec-Fetch-Dest: document
+Sec-Fetch-Mode: navigate
+Sec-Fetch-Site: none
+Sec-Fetch-User: ?1
+Priority: u=0, i
+```
+test.txt:
+```
+Bytes received: 466
+HTTP Packet received from browser/client:
+GET /test.txt HTTP/1.1
+Host: 127.0.0.1:8080
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:139.0) Gecko/20100101 Firefox/139.0
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8
+Accept-Language: en-US,en;q=0.5
+Accept-Encoding: gzip, deflate, br, zstd
+DNT: 1
+Sec-GPC: 1
+Connection: keep-alive
+Upgrade-Insecure-Requests: 1
+Sec-Fetch-Dest: document
+Sec-Fetch-Mode: navigate
+Sec-Fetch-Site: none
+Sec-Fetch-User: ?1
+Priority: u=0, i
+0, i
+```
+
+test.txt by itself:
+- Just making a single request with the test.txt URI works.
+- Problem probably stems from the number of bytes being received is different...
+```
+Bytes received: 466
+HTTP Packet received from browser/client:
+GET /test.txt HTTP/1.1
+Host: 127.0.0.1:8080
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:139.0) Gecko/20100101 Firefox/139.0
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8
+Accept-Language: en-US,en;q=0.5
+Accept-Encoding: gzip, deflate, br, zstd
+DNT: 1
+Sec-GPC: 1
+Connection: keep-alive
+Upgrade-Insecure-Requests: 1
+Sec-Fetch-Dest: document
+Sec-Fetch-Mode: navigate
+Sec-Fetch-Site: none
+Sec-Fetch-User: ?1
+Priority: u=0, i
+```
+The fix I am going to try is add null terminating character at the end of each packet...
+- Doing this did fix it.
+
+ 10
+P 80
+r 114
+i 105
+o 111
+r 114
+i 105
+t 116
+y 121
+: 58
+  32
+u 117
+= 61
+0 48
+, 44
+  32
+i 105
+ 13
+
+ 10
+ 13
+
+ 10
+---------
+P 80
+r 114
+i 105
+o 111
+r 114
+i 105
+t 116
+y 121
+: 58
+  32
+u 117
+= 61
+0 48
+, 44
+  32
+i 105
+ 13
+
+ 10
+ 13
+
+ 10
+0 48
+, 44
+  32
+i 105
+ 13
+
+ 10
+ 13
+
+ 10
+
+- Finished checking if file exists on web server or not.
+- Next steps -> send the requested file back to the user!!!!!!
+
+Text File Request + Retrieval:
+Open text file -> read file contents -> copy file contents in suitable HTTP packet where the 'Content-Type' is set to 'text/plain' -> send to client -> web browser renders said text file...
+https://www.geeksforgeeks.org/c-program-to-read-contents-of-whole-file/
+https://developer.mozilla.org/en-US/docs/Web/HTTP/Guides/Messages#anatomy_of_an_http_message
+
+test code:
+```
+bash -c '
+HOST=127.0.0.1
+PORT=8080
+tests=(
+  "❌ Lowercase Method" "get /data/geralt.txt HTTP/1.1\r\nHost: localhost\r\n\r\n"
+  "❌ File does not exist" "GET /data/dean.txt HTTP/1.1\r\nHost: localhost\r\n\r\n"
+  "❌ Missing CRLF after headers" "GET /data/geralt.txt HTTP/1.1\r\nHost: localhost"
+  "✅ Proper GET Request" "GET /data/geralt.txt HTTP/1.1\r\nHost: localhost\r\n\r\n"
+)
+for ((i=0; i<${#tests[@]}; i+=2)); do
+  echo -e "\n===== ${tests[i]} ====="
+  printf "${tests[i+1]}" | nc $HOST $PORT
+  echo -e "\n===========================\n"
+  sleep 0.5
+done'
+
+```
+
+# alejandro/HTTPImageFileRetrieval
+GOALS:
+- Get .jpg and .jpeg file transfer and request working...
+
+Test code:
+```
+bash -c '
+HOST=127.0.0.1
+PORT=8080
+tests=(
+  "❌ Lowercase Method" "get /data/geralt.txt HTTP/1.1\r\nHost: localhost\r\n\r\n"
+  "❌ File does not exist" "GET /data/dean.txt HTTP/1.1\r\nHost: localhost\r\n\r\n"
+  "❌ Missing CRLF after headers" "GET /data/geralt.txt HTTP/1.1\r\nHost: localhost"
+  "✅ Proper GET Request with .txt file" "GET /data/geralt.txt HTTP/1.1\r\nHost: localhost\r\n\r\n"
+  "✅ Proper GET Request with .jpg image" "GET /data/geralt.jpg HTTP/1.1\r\nHost: localhost\r\n\r\n"
+)
+for ((i=0; i<${#tests[@]}; i+=2)); do
+  echo -e "\n===== ${tests[i]} ====="
+  printf "${tests[i+1]}" | nc $HOST $PORT
+  echo -e "\n===========================\n"
+  sleep 0.5
+done'
+```
+
+https://stackoverflow.com/questions/23714383/what-are-all-the-possible-values-for-http-content-type-header
+-> `image/jpeg`, content-type header value...
+don't need encoding... -> can think about it later.
+Need to figure out how to encode a .jpg/.jpeg file into the message body of the HTTP packet:
+- Need to specify content codings -> 'Content codings are primarily
+   used to allow a document to be compressed or otherwise usefully
+   transformed without losing the identity of its underlying media type
+   and without loss of information. Frequently, the entity is stored in
+   coded form, transmitted directly, and only decoded by the recipient.'
+	- https://www.rfc-editor.org/rfc/rfc2616#section-3.5 (3.5 Content Codings)
+
+Process for image retrieval:
+1) Binary read the data of the image.
+2) Get the length of the image data and malloc a buffer of enough size.
+3) Then, I need to copy said data into an appropriate buffer of enough size (need to also think about error handling, if the file is too big...).
+4) Format both length and raw binary data into an appropriate HTTP packet.
+5) Send the packet over to the client (web browser).
+
+https://www.man7.org/linux/man-pages/man2/stat.2.html
+https://www.man7.org/linux/man-pages/man3/stat.3type.html
+https://pubs.opengroup.org/onlinepubs/7908799/xsh/sysstat.h.html
 
 
 # chris/betterMsgReception
@@ -218,3 +467,4 @@ Managed using the long polling
 [C in react using web assembly](https://dev.to/iprosk/cc-code-in-react-using-webassembly-7ka)
 [C++ in react](https://medium.com/@stormbee/supercharge-your-react-app-with-c-e89025f03b37)
 [Long Polling](https://medium.com/@ignatovich.dm/implementing-long-polling-with-express-and-react-2cb965203128) - Used this.
+
