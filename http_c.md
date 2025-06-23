@@ -14,7 +14,7 @@ Associated: "[[tank_squared]]"
 3. [[#chris/betterMsgReception|Instant message reception]]
 4. [HTTP Text File Retrieval](#alejandro/HTTPTextFileRetrieval)
 5. [HTTP Image File Retrieval](#alejandro/HTTPImageFileRetrieval)
-6. [HTTP Head Method](#alejandro/HEADMethod)
+6. [HTTP Head Method + Thread Pool](#alejandro/HEADMethodThreadPool)
 # alejandro/HTTPResponse
 
 recreate the error (on linux):
@@ -410,6 +410,24 @@ https://www.man7.org/linux/man-pages/man2/stat.2.html
 https://www.man7.org/linux/man-pages/man3/stat.3type.html
 https://pubs.opengroup.org/onlinepubs/7908799/xsh/sysstat.h.html
 
-# alejandro/HEADMethod
+# alejandro/HEADMethodThreadPool
 - https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Methods/HEAD
 HEAD method is basically a GET method, but only retrieves the header fields of a specific resource.
+-> ```
+```
+curl -I http://localhost:8080
+``` 
+test with this command...
+
+FOCUS Thread Pool
+Main Components:
+- Circular Queue for the tasks:
+	- FUNCTION 1 -> Enqueue tasks (add task for worker thread(s)).
+	- FUNCTION 2 -> Dequeue tasks (get task for worker thread).
+	- FUNCTION 3 -> Execute Tasks by using and waking a worker thread.
+- Array of worker threads (the actual thread pool).
+- The task will just be my function the executes the HTTP parsing -> will require a struct for custom data required.
+
+STRUCTS Required:
+- Circular Queue struct (thread pool struct).
+- HTTP struct.
