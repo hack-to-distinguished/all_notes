@@ -441,3 +441,6 @@ threadpool.h
 HEAD Method stuff:
 - END_OF_HEADERS -> send_requested_HEAD
 	- send_requested_HEAD should facilitate all the HEAD requests...
+
+https://stackoverflow.com/questions/26306644/how-to-display-st-atime-and-st-mtime
+https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Last-Modified
