@@ -437,3 +437,7 @@ http.h
 http.c
 threadpool.c
 threadpool.h
+
+HEAD Method stuff:
+- END_OF_HEADERS -> send_requested_HEAD
+	- send_requested_HEAD should facilitate all the HEAD requests...
