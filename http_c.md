@@ -431,3 +431,9 @@ Main Components:
 STRUCTS Required:
 - Circular Queue struct (thread pool struct).
 - HTTP struct.
+
+REFACTOR:
+http.h
+http.c
+threadpool.c
+threadpool.h
