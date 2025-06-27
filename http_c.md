@@ -444,3 +444,4 @@ HEAD Method stuff:
 
 https://stackoverflow.com/questions/26306644/how-to-display-st-atime-and-st-mtime
 https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Last-Modified
+https://stackoverflow.com/questions/4217037/catch-ctrl-c-in-c
