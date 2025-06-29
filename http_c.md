@@ -445,3 +445,8 @@ HEAD Method stuff:
 https://stackoverflow.com/questions/26306644/how-to-display-st-atime-and-st-mtime
 https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Last-Modified
 https://stackoverflow.com/questions/4217037/catch-ctrl-c-in-c
+https://thelinuxcode.com/signal_handlers_c_programming_language/
+
+- always mutex lock for shared resources
+- cond signal wakes one thread up, cond broadcast wakes all threads up.
+	- cond_wait must be used in conjunction with a predicate inside a while loop
