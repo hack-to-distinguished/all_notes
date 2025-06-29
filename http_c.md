@@ -7,13 +7,14 @@ aliases:
   - Hyper Text Transfer Protocol
 Associated: "[[tank_squared]]"
 ---
-****
+
 # Table of Contents
 1. [HTTP Response](#alejandro/HTTPResponse)
 2. [Multi-client messaging](#chris/redirectMsg)
 3. [[#chris/betterMsgReception|Instant message reception]]
 4. [HTTP Text File Retrieval](#alejandro/HTTPTextFileRetrieval)
 5. [HTTP Image File Retrieval](#alejandro/HTTPImageFileRetrieval)
+6. [HTTP Head Method + Thread Pool](#alejandro/HEADMethodThreadPool)
 # alejandro/HTTPResponse
 
 recreate the error (on linux):
@@ -397,8 +398,46 @@ Process for image retrieval:
 https://www.man7.org/linux/man-pages/man2/stat.2.html
 https://www.man7.org/linux/man-pages/man3/stat.3type.html
 https://pubs.opengroup.org/onlinepubs/7908799/xsh/sysstat.h.html
+# alejandro/HEADMethodThreadPool
+- https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Methods/HEAD
+HEAD method is basically a GET method, but only retrieves the header fields of a specific resource.
+-> ```
+```
+curl -I http://localhost:8080
+``` 
+test with this command...
 
+FOCUS Thread Pool
+Main Components:
+- Circular Queue for the tasks:
+	- FUNCTION 1 -> Enqueue tasks (add task for worker thread(s)).
+	- FUNCTION 2 -> Dequeue tasks (get task for worker thread).
+	- FUNCTION 3 -> Execute Tasks by using and waking a worker thread.
+- Array of worker threads (the actual thread pool).
+- The task will just be my function the executes the HTTP parsing -> will require a struct for custom data required.
 
+STRUCTS Required:
+- Circular Queue struct (thread pool struct).
+- HTTP struct.
+
+REFACTOR:
+http.h
+http.c
+threadpool.c
+threadpool.h
+
+HEAD Method stuff:
+- END_OF_HEADERS -> send_requested_HEAD
+	- send_requested_HEAD should facilitate all the HEAD requests...
+
+https://stackoverflow.com/questions/26306644/how-to-display-st-atime-and-st-mtime
+https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Last-Modified
+https://stackoverflow.com/questions/4217037/catch-ctrl-c-in-c
+https://thelinuxcode.com/signal_handlers_c_programming_language/
+
+- always mutex lock for shared resources
+- cond signal wakes one thread up, cond broadcast wakes all threads up.
+	- cond_wait must be used in conjunction with a predicate inside a while loop
 # chris/betterMsgReception
 
 ### Goal
@@ -408,8 +447,6 @@ When the client is in a send state (when he is typing a message) message recepti
 
 ### Solutions
 - Use `STDIN_FILENO()` 
-
-
 # chris/msgUI - chris/msgFromBrowser
 
 ### Goal
@@ -460,11 +497,7 @@ If no messages are sent for a while, the most recent messages (maybe 10 max) flo
 The web view of HTTPC is more for fun (this one at least). The actual important messaging section with extra security and stuff will be through a different medium. I'm thinking something SSH related. Accessible via the command line or something else that would be easily portable to a mobile device. All security will be handled on the sever side (C) so doing the web client this way doesn't weaken the important part
 
 Managed using the long polling
-
-
-
 ### Sources:
 [C in react using web assembly](https://dev.to/iprosk/cc-code-in-react-using-webassembly-7ka)
 [C++ in react](https://medium.com/@stormbee/supercharge-your-react-app-with-c-e89025f03b37)
 [Long Polling](https://medium.com/@ignatovich.dm/implementing-long-polling-with-express-and-react-2cb965203128) - Used this.
-
