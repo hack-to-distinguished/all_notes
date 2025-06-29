@@ -7,7 +7,7 @@ aliases:
   - Hyper Text Transfer Protocol
 Associated: "[[tank_squared]]"
 ---
-
+****
 # Table of Contents
 1. [HTTP Response](#alejandro/HTTPResponse)
 2. [Multi-client messaging](#chris/redirectMsg)
@@ -190,17 +190,6 @@ Handling multiple connections:
 		- Create the message sending mechanism
 		- Send the message entered by the user
 
-
-# chris/betterMsgReception
-
-### Goal
-Receive the message from the other client as soon as it's ready
-### Problem 
-When the client is in a send state (when he is typing a message) message reception is blocked. This is because the `fgets()` is a blocking function. The messages needs to be sent so that the client goes through another iteration of the loop for a `recv()` function to be called and display the incoming message.
-
-### Solutions
-- Make `fgets()` asynchronous
-- Use `STDIN_FILENO()` 
 
 # alejandro/HTTPTextFileRetrieval
 PLAN: 
@@ -409,7 +398,6 @@ Process for image retrieval:
 https://www.man7.org/linux/man-pages/man2/stat.2.html
 https://www.man7.org/linux/man-pages/man3/stat.3type.html
 https://pubs.opengroup.org/onlinepubs/7908799/xsh/sysstat.h.html
-
 # alejandro/HEADMethodThreadPool
 - https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Methods/HEAD
 HEAD method is basically a GET method, but only retrieves the header fields of a specific resource.
@@ -450,3 +438,66 @@ https://thelinuxcode.com/signal_handlers_c_programming_language/
 - always mutex lock for shared resources
 - cond signal wakes one thread up, cond broadcast wakes all threads up.
 	- cond_wait must be used in conjunction with a predicate inside a while loop
+# chris/betterMsgReception
+
+### Goal
+Receive the message from the other client as soon as it's ready
+### Problem 
+When the client is in a send state (when he is typing a message) message reception is blocked. This is because the `fgets()` is a blocking function. The messages needs to be sent so that the client goes through another iteration of the loop for a `recv()` function to be called and display the incoming message.
+
+### Solutions
+- Use `STDIN_FILENO()` 
+# chris/msgUI - chris/msgFromBrowser
+
+### Goal
+Build a user interface for the messaging portion of HTTPC. Build a web view using JavaScript. 
+Build a command line user interface where people can SSH into HTTC to send a receive messages straight from the CLI.
+The next step would be building a GUI for desktop in C.
+
+Web view for the chat
+- Build a view that would show some floating text. Like something that's not supposed to be answered. Just messages that float into the void. They go from right to left and can appear at any y-axis level.
+SSH through the CLI for the chat. 
+
+All messages should be saved in a database at some point. For now just save them in the current user session.
+
+
+### Problem 
+The browser can't directly execute C code
+
+### Solutions
+Option 1: 
+Create a proxy (maybe in Node.ts) that would become client.c (replacing it) for the browser side of things. And that sever side functionality would convert the HTTP requests sent by the React app into raw TCP packets to the C server. The proxy would also convert TCP packets into HTTP back to React
+
+| Layer        | Purpose                            |
+| ------------ | ---------------------------------- |
+| C server     | TCP server handling message logic  |
+| Proxy (Node) | Converts HTTP to raw TCP           |
+| React        | Sends HTTP requests (from browser) |
+Option 2:
+Make the server handle HTTP requests instead of just raw TCP packets
+
+
+Option 2 is the way to go imo.
+For now, just focus on finding a way to communicate with the C code.
+
+#### Notes
+Since the server just instantly sends messages to whoever is connected, you can connect and receive all the message that were sent before. You might need to be constantly pinging the server in order to get any messages.
+
+On the frontend I am trying to fetch data from the C server but the C server is pushing data. I should just be waiting for data to arrive. I shouldn't pull, I should just be open to receive.
+
+2025-06-22:
+The interval check is connecting and disconnecting from the server. Not maintaining the connection. That means that I always get the "connected to the sever" msg and not the messages sent form other people. I need to open a connection and maintain it.
+
+
+#### Display
+The MessageBox page will call the C API and here we handle the displaying of each message.
+They should be displayed from bottom to top as if coming from below the screen.
+They slowly float to the top, they aren't forever, only available for a short period of time.
+If no messages are sent for a while, the most recent messages (maybe 10 max) float back down and wait. When a messages is sent, they're pushed back up.
+The web view of HTTPC is more for fun (this one at least). The actual important messaging section with extra security and stuff will be through a different medium. I'm thinking something SSH related. Accessible via the command line or something else that would be easily portable to a mobile device. All security will be handled on the sever side (C) so doing the web client this way doesn't weaken the important part
+
+Managed using the long polling
+### Sources:
+[C in react using web assembly](https://dev.to/iprosk/cc-code-in-react-using-webassembly-7ka)
+[C++ in react](https://medium.com/@stormbee/supercharge-your-react-app-with-c-e89025f03b37)
+[Long Polling](https://medium.com/@ignatovich.dm/implementing-long-polling-with-express-and-react-2cb965203128) - Used this.
