@@ -15,6 +15,7 @@ Associated: "[[tank_squared]]"
 4. [HTTP Text File Retrieval](#alejandro/HTTPTextFileRetrieval)
 5. [HTTP Image File Retrieval](#alejandro/HTTPImageFileRetrieval)
 6. [HTTP Head Method + Thread Pool](#alejandro/HEADMethodThreadPool)
+7. [Web Server Optimisation + Bug Fixes](#alejandro/serverOptimisation)
 # alejandro/HTTPResponse
 
 recreate the error (on linux):
@@ -501,3 +502,5 @@ Managed using the long polling
 [C in react using web assembly](https://dev.to/iprosk/cc-code-in-react-using-webassembly-7ka)
 [C++ in react](https://medium.com/@stormbee/supercharge-your-react-app-with-c-e89025f03b37)
 [Long Polling](https://medium.com/@ignatovich.dm/implementing-long-polling-with-express-and-react-2cb965203128) - Used this.
+
+# alejandro/serverOptimisation
