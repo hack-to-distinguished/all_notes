@@ -504,3 +504,7 @@ Managed using the long polling
 [Long Polling](https://medium.com/@ignatovich.dm/implementing-long-polling-with-express-and-react-2cb965203128) - Used this.
 
 # alejandro/serverOptimisation
+-> fix file descriptor leak again...
+```
+watch -n 1 "ls /proc/$(pidof threadpoolserver)/fd | wc -l"  
+```
