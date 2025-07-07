@@ -576,3 +576,21 @@ SUMMARY: AddressSanitizer: double-free http.c in REQUEST_LINE_STATE
 error at request line statefish: Job 1, './threadpoolserver' terminated by signal SIGABRT (Abort)
 ```
 - fixed -> stupid double free, accidently pasted free twice.
+
+Linux memory error: (leak)
+```
+set HOST 127.0.0.1
+set PORT 8080
+
+set -l test_names "❌ Missing CRLF after headers" "❌ Improper Line Endings (LF)"
+set -l test_payloads \
+    "GET / HTTP/1.1\r\nHost: localhost" \
+    "GET / HTTP/1.1\nHost: localhost\n\n"
+
+for i in (seq 1 (count $test_names))
+    echo -e "\n===== $test_names[$i] ====="
+    echo -e $test_payloads[$i] | nc $HOST $PORT
+    echo -e "\n===========================\n"
+    sleep 0.5
+end
+```
