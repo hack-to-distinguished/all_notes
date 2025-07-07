@@ -514,3 +514,65 @@ macos:
 ```
 watch -n 1 'pgrep threadpoolserver | while read pid; do echo -n "PID $pid: "; lsof -p $pid | tail -n +2 | wc -l; done'
 ```
+
+- There is now a bug when i do these commands:
+```
+bash -c '
+HOST=127.0.0.1
+PORT=8080
+
+echo -e "\n===== ❌ Empty Request ====="
+printf "\r\n\r\n" | nc $HOST $PORT
+echo -e "\n===========================\n"
+
+echo -e "\n===== ✅ Valid with Extra Headers ====="
+printf "GET / HTTP/1.1\r\nHost: localhost\r\nUser-Agent: TestClient/1.0\r\nAccept: */*\r\n\r\n" | nc $HOST $PORT
+echo -e "\n===========================\n"
+'
+
+```
+Error: -> will need to fix
+```
+threadpoolserver(33861,0x20a5d9f00) malloc: nano zone abandoned due to inability to reserve vm space.
+
+starting server: 0
+=================================================================
+==33861==ERROR: AddressSanitizer: attempting double-free on 0x602000001010 in thread T2:
+    #0 0x000102a55480 in free+0x7c (libclang_rt.asan_osx_dynamic.dylib:arm64e+0x3d480)
+    #1 0x0001022065e0 in REQUEST_LINE_STATE http.c
+    #2 0x000102206ad4 in parse_HTTP_requests http.c:574
+    #3 0x000102207018 in worker_thread_t threadpool.c:101
+    #4 0x000102a524a4 in asan_thread_start(void*)+0x4c (libclang_rt.asan_osx_dynamic.dylib:arm64e+0x3a4a4)
+    #5 0x00019c4cac08 in _pthread_start+0x84 (libsystem_pthread.dylib:arm64e+0x6c08)
+    #6 0x00019c4c5b7c in thread_start+0x4 (libsystem_pthread.dylib:arm64e+0x1b7c)
+
+0x602000001010 is located 0 bytes inside of 8-byte region [0x602000001010,0x602000001018)
+freed by thread T2 here:
+    #0 0x000102a55480 in free+0x7c (libclang_rt.asan_osx_dynamic.dylib:arm64e+0x3d480)
+    #1 0x0001022065d8 in REQUEST_LINE_STATE http.c:503
+    #2 0x000102206ad4 in parse_HTTP_requests http.c:574
+    #3 0x000102207018 in worker_thread_t threadpool.c:101
+    #4 0x000102a524a4 in asan_thread_start(void*)+0x4c (libclang_rt.asan_osx_dynamic.dylib:arm64e+0x3a4a4)
+    #5 0x00019c4cac08 in _pthread_start+0x84 (libsystem_pthread.dylib:arm64e+0x6c08)
+    #6 0x00019c4c5b7c in thread_start+0x4 (libsystem_pthread.dylib:arm64e+0x1b7c)
+
+previously allocated by thread T2 here:
+    #0 0x000102a5538c in malloc+0x78 (libclang_rt.asan_osx_dynamic.dylib:arm64e+0x3d38c)
+    #1 0x000102206440 in REQUEST_LINE_STATE http.c:485
+    #2 0x000102206ad4 in parse_HTTP_requests http.c:574
+    #3 0x000102207018 in worker_thread_t threadpool.c:101
+    #4 0x000102a524a4 in asan_thread_start(void*)+0x4c (libclang_rt.asan_osx_dynamic.dylib:arm64e+0x3a4a4)
+    #5 0x00019c4cac08 in _pthread_start+0x84 (libsystem_pthread.dylib:arm64e+0x6c08)
+    #6 0x00019c4c5b7c in thread_start+0x4 (libsystem_pthread.dylib:arm64e+0x1b7c)
+
+Thread T2 created by T0 here:
+    #0 0x000102a4db04 in pthread_create+0x5c (libclang_rt.asan_osx_dynamic.dylib:arm64e+0x35b04)
+    #1 0x0001022072a0 in worker_threads_init threadpool.c:123
+    #2 0x000102207630 in main threadpoolserver.c:30
+    #3 0x00019c12ab94 in start+0x17b8 (dyld:arm64e+0xfffffffffff3ab94)
+
+SUMMARY: AddressSanitizer: double-free http.c in REQUEST_LINE_STATE
+==33861==ABORTING
+error at request line statefish: Job 1, './threadpoolserver' terminated by signal SIGABRT (Abort)
+```
+- fixed -> stupid double free, accidently pasted free twice.
