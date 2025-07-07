@@ -505,6 +505,12 @@ Managed using the long polling
 
 # alejandro/serverOptimisation
 -> fix file descriptor leak again...
+linux:
 ```
 watch -n 1 "ls /proc/$(pidof threadpoolserver)/fd | wc -l"  
+```
+
+macos:
+```
+watch -n 1 'pgrep threadpoolserver | while read pid; do echo -n "PID $pid: "; lsof -p $pid | tail -n +2 | wc -l; done'
 ```
