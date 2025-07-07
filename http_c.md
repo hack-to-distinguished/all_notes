@@ -594,3 +594,18 @@ for i in (seq 1 (count $test_names))
     sleep 0.5
 end
 ```
+
+```
+set HOST 127.0.0.1
+set PORT 8080
+echo -e "GET / HTTP/1.1\r\nHost: localhost" | nc $HOST $PORT
+```
+
+```
+set HOST 127.0.0.1
+set PORT 8080
+echo -e "GET / HTTP/1.1\nHost: localhost\n\n" | nc $HOST $PORT
+```
+
+![[Pasted image 20250707125430.png]]
+-> bug only seen in linux, not on my mac
