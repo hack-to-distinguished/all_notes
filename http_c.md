@@ -609,3 +609,7 @@ echo -e "GET / HTTP/1.1\nHost: localhost\n\n" | nc $HOST $PORT
 
 ![[Pasted image 20250707125430.png]]
 -> bug only seen in linux, not on my mac
+
+```
+echo -e "GET / HTTP/1.1\r\nHost: localhost" | nc -q 1 127.0.0.1 8080
+```
