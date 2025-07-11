@@ -16,6 +16,7 @@ Associated: "[[tank_squared]]"
 5. [HTTP Image File Retrieval](#alejandro/HTTPImageFileRetrieval)
 6. [HTTP Head Method + Thread Pool](#alejandro/HEADMethodThreadPool)
 7. [Web Server Optimisation + Bug Fixes](#alejandro/serverOptimisation)
+8. [HTTP POST Method](#alejandro/postRequestHandling)
 # alejandro/HTTPResponse
 
 recreate the error (on linux):
@@ -613,3 +614,5 @@ echo -e "GET / HTTP/1.1\nHost: localhost\n\n" | nc $HOST $PORT
 ```
 echo -e "GET / HTTP/1.1\r\nHost: localhost" | nc -q 1 127.0.0.1 8080
 ```
+
+# alejandro/postRequestHandling
