@@ -8,12 +8,14 @@ aliases:
 Associated: "[[tank_squared]]"
 ---
 ****
-# Table of Contents
+b# Table of Contents
 1. [HTTP Response](#alejandro/HTTPResponse)
 2. [Multi-client messaging](#chris/redirectMsg)
-3. [[#chris/betterMsgReception|Instant message reception]]
+3. [Instant message reception](#chris/betterMsgReception)
 4. [HTTP Text File Retrieval](#alejandro/HTTPTextFileRetrieval)
 5. [HTTP Image File Retrieval](#alejandro/HTTPImageFileRetrieval)
+6. [Browser messaging](#chris/msgUI-Chris/msgFromBrowser)
+7. [Display browser message](#chris/msgDisplay)
 # alejandro/HTTPResponse
 
 recreate the error (on linux):
@@ -410,7 +412,7 @@ When the client is in a send state (when he is typing a message) message recepti
 - Use `STDIN_FILENO()` 
 
 
-# chris/msgUI - chris/msgFromBrowser
+# chris/msgUI-Chris/msgFromBrowser
 
 ### Goal
 Build a user interface for the messaging portion of HTTPC. Build a web view using JavaScript. 
@@ -468,3 +470,99 @@ Managed using the long polling
 [C++ in react](https://medium.com/@stormbee/supercharge-your-react-app-with-c-e89025f03b37)
 [Long Polling](https://medium.com/@ignatovich.dm/implementing-long-polling-with-express-and-react-2cb965203128) - Used this.
 
+
+# chris/msgDisplay
+changing the webserver to websocket server. Going to keep the same name. It just goes from http to websocket using UDP instead of TCP
+
+##### Steps:
+---
+###### Phase 1: The TCP Server Foundation (You've already done this)
+This is your starting point. You need a robust, event-driven TCP server that can handle multiple clients.
+
+*   **Socket Setup:** Create a TCP socket (`SOCK_STREAM`), set options like `SO_REUSEADDR`, `bind` it to your port, and `listen` for incoming connections.
+*   **Event Loop:** Use `poll()` (or `epoll()` for better performance) as your main loop. You will monitor the listening socket for new connections and all active client sockets for incoming data.
+*   **Client Management:** When `accept()` returns a new client socket, add it to your `poll` set and maintain a data structure for each client to track its state (e.g., `CONNECTING`, `OPEN`, `CLOSING`).
+
+---
+
+###### Phase 2: The WebSocket Handshake (The HTTP Upgrade)
+This is the most critical part for establishing a connection with a web browser. It happens **once** per client, immediately after `accept()`.
+
+1.  **Receive the Client's Request:** After a new client connects, the first thing it will send is a multi-line text block. Read this data. It is an HTTP GET request.
+2.  **Validate the Headers:** You are not a full web server, you are a WebSocket server. You only care about very specific headers. You must parse the received text and verify the following:
+    *   The first line must start with `GET`.
+    *   There must be a header `Upgrade: websocket` (case-insensitive).
+    *   There must be a header `Connection: Upgrade` (case-insensitive).
+    *   There must be a header `Sec-WebSocket-Version: 13`. If it's another version, you should reject it.
+    *   There must be a header `Sec-WebSocket-Key`. You need to extract its value (a 24-character Base64 string).
+
+3.  **Handle Invalid Requests:** If any of these validations fail, it is *not* a valid WebSocket handshake. You should send a standard HTTP error response (like `HTTP/1.1 400 Bad Request`) and immediately `close()` the socket for that client.
+
+4.  **Calculate the Server's Acceptance Key:** This is the "magic" that proves you understand the protocol.
+    *   **Step A:** Take the string value you extracted from the `Sec-WebSocket-Key` header.
+    *   **Step B:** Concatenate (append) a specific, globally-defined "magic string" to it. That magic string is exactly: `258EAFA5-E914-47DA-95CA-C5AB0DC85B11`.
+    *   **Step C:** Compute the **SHA-1 hash** of the newly concatenated string. This will result in a 20-byte binary hash. You will need a SHA-1 implementation for this (e.g., from a library like OpenSSL, or by writing your own).
+    *   **Step D:** **Base64-encode** the 20-byte *binary* SHA-1 hash. You will need a Base64 implementation for this.
+
+5.  **Send the Server's Handshake Response:** If the client's request was valid, construct and send the following multi-line text response:
+    *   The status line: `HTTP/1.1 101 Switching Protocols\r\n`
+    *   A header: `Upgrade: websocket\r\n`
+    *   A header: `Connection: Upgrade\r\n`
+    *   The acceptance key header: `Sec-WebSocket-Accept: [your calculated Base64 string]\r\n\r\n`
+    *   Notice the final `\r\n` which signifibes the end of the HTTP headers.
+
+6.  **Change Client State:** After successfully sending this response, change the state for this client in your data structure from `CONNECTING` to `OPEN`. From now on, all communication on this socket will use WebSocket frames, not HTTP.
+
+---
+
+### Phase 3: Data Framing (Sending and Receiving Messages)
+
+Once the connection is `OPEN`, data is no longer sent as raw text. It is sent in "frames." You must be able to both parse incoming frames and construct outgoing frames.
+
+#### The Structure of a WebSocket Frame
+A frame is made of a header (2 to 14 bytes) and a payload (the actual data).
+
+*   **Byte 1: `FIN`, `RSV`s, and `Opcode`**
+    *   **`FIN` bit:** Is this the final frame for a message? (For now, always set this to `1`).
+    *   **`Opcode` (4 bits):** What type of frame is this?
+        *   `0x1`: Text data (UTF-8)
+        *   `0x2`: Binary data
+        *   `0x8`: Connection Close
+        *   `0x9`: Ping
+        *   `0xA`: Pong
+
+*   **Byte 2: `MASK` bit and Payload Length**
+    *   **`MASK` bit:** **Crucial.** All frames from a client to the server **MUST** have this bit set to `1`. All frames from your server to the client **MUST** have this bit set to `0`. If you receive a frame from a client with this bit as `0`, you must close the connection.
+    *   **Payload Length (7 bits):** A value from 0-125.
+        *   If this value is **126**, the *next 2 bytes* are the actual payload length.
+        *   If this value is **127**, the *next 8 bytes* are the actual payload length.
+
+*   **Masking Key (4 bytes):** If the `MASK` bit was `1`, these 4 bytes immediately follow the length field.
+*   **Payload Data:** The actual application data.
+
+#### Your Server's Job
+1.  **Parsing an Incoming Frame (from Client):**
+    *   Read the first 2 bytes.**1**1
+    *   Check the `MASK` bit (must be 1).
+    *   Determine the payload length by checking if the initial length value is < 126, 126, or 127. Read the extended length bytes if necessary.
+    *   Read the 4-byte masking key.
+    *   Read the number of bytes you calculated for the payload.
+    *   **Unmask the Payload:** Loop through every byte of the payload data. The unmasked byte is calculated as: `unmasked_byte = received_byte XOR masking_key[i % 4]`.
+    *   The result of this unmasking loop is the clean message from the client.
+
+2.  **Constructing an Outgoing Frame (to Client):**
+    *   Create the header. Set `FIN=1`, `Opcode=0x1` (for text).
+    *   **Set `MASK=0`**.
+    *   Set the payload length fields correctly based on the size of your message.
+    *   Do **not** include a masking key.
+    *   Append your raw message data as the payload.
+    *   Send the entire constructed frame (header + payload) on the TCP socket.
+
+---
+
+### Phase 4: Connection Teardown & Keep-Alives
+
+*   **Close Frame (`Opcode 0x8`):** If you receive a Close frame from a client, your server should respond by sending its own Close frame back, and then `close()` the underlying TCP socket.
+*   **Ping/Pong Frames (`Opcodes 0x9, 0xA`):** If you receive a Ping frame, you **must** immediately send back a Pong frame. The Pong frame must have the **exact same payload data** that the Ping frame contained. This is the protocol's keep-alive mechanism.
+
+This is a complete conceptual overview. Good luck—it's a fantastic project.
