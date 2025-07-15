@@ -8,7 +8,7 @@ aliases:
 Associated: "[[tank_squared]]"
 ---
 ****
-b# Table of Contents
+# Table of Contents
 1. [HTTP Response](#alejandro/HTTPResponse)
 2. [Multi-client messaging](#chris/redirectMsg)
 3. [Instant message reception](#chris/betterMsgReception)
