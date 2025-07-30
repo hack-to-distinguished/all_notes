@@ -527,7 +527,7 @@ printf "\r\n\r\n" | nc $HOST $PORT
 echo -e "\n===========================\n"
 
 echo -e "\n===== ✅ Valid with Extra Headers ====="
-printf "GET / HTTP/1.1\r\nHost: localhost\r\nUser-Agent: TestClient/1.0\r\nAccept: */*\r\n\r\n" | nc $HOST $PORT
+printf "GET /static/index.html HTTP/1.1\r\nHost: localhost\r\nUser-Agent: TestClient/1.0\r\nAccept: */*\r\n\r\n" | nc $HOST $PORT
 echo -e "\n===========================\n"
 '
 
@@ -684,8 +684,8 @@ Connection: keep-alive
 ```
 
 Process:
-1) Detect POST.
+1) Detect POST. DONE
 2) Read Request Body of POST.
-3) Parse data via a pre-established format.
+3) Parse data via a pre-established format (application/x-www-form-urlencoded).
 4) Process that data.
 5) Generate and send a proper HTTP Response back to client.
