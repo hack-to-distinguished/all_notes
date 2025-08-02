@@ -735,51 +735,19 @@ Process:
 3) Parse data via a pre-established format (application/x-www-form-urlencoded).
 		- https://www.logicbig.com/quick-info/http/application_x-www-form-urlencoded.html 
 4) Process that data.
+	1) process -> send http response back to user of the data that they sent.
 5) Generate and send a proper HTTP Response back to client.
 
-Here’s a **short list of key HTTP POST body content types**, each with **key notes** and a **simple example body**:
+The **most commonly used HTTP POST body content types** in practice are:
 
 ---
 
-### 1. **application/x-www-form-urlencoded**
+### 1. **application/json**
 
-- **Key notes:** Default for HTML forms; body is URL-encoded key=value pairs.
+- **Where used:**
     
-- **Example body:**
-    
-    ```
-    username=alex&password=1234
-    ```
-    
-
----
-
-### 2. **multipart/form-data**
-
-- **Key notes:** Used when uploading files; body split into parts with boundaries.
-    
-- **Example body (simplified):**
-    
-    ```
-    ------boundary
-    Content-Disposition: form-data; name="username"
-    
-    alex
-    ------boundary
-    Content-Disposition: form-data; name="file"; filename="image.png"
-    Content-Type: image/png
-    
-    ...binary data...
-    ------boundary--
-    ```
-    
-
----
-
-### 3. **application/json**
-
-- **Key notes:** Sends JSON; very common for APIs.
-    
+    - Modern APIs (REST, GraphQL, mobile apps, SPAs).
+        
 - **Example body:**
     
     ```json
@@ -792,46 +760,45 @@ Here’s a **short list of key HTTP POST body content types**, each with **key n
 
 ---
 
-### 4. **text/plain**
+### 2. **application/x-www-form-urlencoded**
 
-- **Key notes:** Raw text; rarely used except for debugging.
+- **Where used:**
     
+    - Traditional HTML forms without file uploads.
+        
 - **Example body:**
     
     ```
-    Just some plain text
+    username=alex&password=1234
     ```
     
 
 ---
 
-### 5. **application/xml**
+### 3. **multipart/form-data**
 
-- **Key notes:** XML document; common in SOAP and legacy systems.
+- **Where used:**
     
-- **Example body:**
+    - Forms that upload files or images.
+        
+- **Example body (simplified):**
     
-    ```xml
-    <login>
-      <username>alex</username>
-      <password>1234</password>
-    </login>
+    ```
+    ------boundary
+    Content-Disposition: form-data; name="username"
+    
+    alex
+    ------boundary
+    Content-Disposition: form-data; name="file"; filename="photo.jpg"
+    Content-Type: image/jpeg
+    
+    ...binary data...
+    ------boundary--
     ```
     
 
 ---
 
-### 6. **application/octet-stream**
+These three cover the vast majority of real-world POST requests.
 
-- **Key notes:** Arbitrary binary data; no structure.
-    
-- **Example body:**
-    
-    ```
-    ...raw binary bytes...
-    ```
-    
-
----
-
-Would you like me to also include **how to identify which one it is from raw HTTP request headers**?
+Would you like me to show you **how these look inside a raw HTTP request (with headers)**?
