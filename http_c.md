@@ -736,3 +736,102 @@ Process:
 		- https://www.logicbig.com/quick-info/http/application_x-www-form-urlencoded.html 
 4) Process that data.
 5) Generate and send a proper HTTP Response back to client.
+
+Here’s a **short list of key HTTP POST body content types**, each with **key notes** and a **simple example body**:
+
+---
+
+### 1. **application/x-www-form-urlencoded**
+
+- **Key notes:** Default for HTML forms; body is URL-encoded key=value pairs.
+    
+- **Example body:**
+    
+    ```
+    username=alex&password=1234
+    ```
+    
+
+---
+
+### 2. **multipart/form-data**
+
+- **Key notes:** Used when uploading files; body split into parts with boundaries.
+    
+- **Example body (simplified):**
+    
+    ```
+    ------boundary
+    Content-Disposition: form-data; name="username"
+    
+    alex
+    ------boundary
+    Content-Disposition: form-data; name="file"; filename="image.png"
+    Content-Type: image/png
+    
+    ...binary data...
+    ------boundary--
+    ```
+    
+
+---
+
+### 3. **application/json**
+
+- **Key notes:** Sends JSON; very common for APIs.
+    
+- **Example body:**
+    
+    ```json
+    {
+      "username": "alex",
+      "password": "1234"
+    }
+    ```
+    
+
+---
+
+### 4. **text/plain**
+
+- **Key notes:** Raw text; rarely used except for debugging.
+    
+- **Example body:**
+    
+    ```
+    Just some plain text
+    ```
+    
+
+---
+
+### 5. **application/xml**
+
+- **Key notes:** XML document; common in SOAP and legacy systems.
+    
+- **Example body:**
+    
+    ```xml
+    <login>
+      <username>alex</username>
+      <password>1234</password>
+    </login>
+    ```
+    
+
+---
+
+### 6. **application/octet-stream**
+
+- **Key notes:** Arbitrary binary data; no structure.
+    
+- **Example body:**
+    
+    ```
+    ...raw binary bytes...
+    ```
+    
+
+---
+
+Would you like me to also include **how to identify which one it is from raw HTTP request headers**?
